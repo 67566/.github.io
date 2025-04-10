@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>互动式反诈警示系统</title>
+    <style>
+        body {
+            background-color: #FFEBEE;
+            font-family: 'Microsoft YaHei', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .warning {
+            color: #D32F2F;
+            font-size: 24px;
+            margin: 30px 0;
+            animation: pulse 1.5s infinite;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .modal-content {
+            margin: 20px 0;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .confirm-btn {
+            background: #D32F2F;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #757575;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="warning">⚠️ 国家反诈中心警示 ⚠️</div>
+    
+    <!-- 模态框结构 -->
+    <div class="modal-overlay" id="overlay"></div>
+    <div class="modal" id="modal">
+        <div class="modal-content" id="modalContent"></div>
+        <div class="modal-buttons">
+            <button class="modal-button confirm-btn" onclick="handleResponse(true)">确认安全</button>
+            <button class="modal-button cancel-btn" onclick="handleResponse(false)">怀疑风险</button>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = [
+            {
+                question: "收到'银行'短信要求点击链接更新个人信息？",
+                correct: false
+            },
+            {
+                question: "朋友通过微信发来二维码要求帮忙扫码领礼品？",
+                correct: false
+            },
+            {
+                question: "警方来电要求提供银行卡信息配合调查？",
+                correct: false
+            },
+            {
+                question: "购物平台通过官方APP发送订单确认信息？",
+                correct: true
+            },
+            {
+                question: "收到'中奖'通知要求先支付手续费？",
+                correct: false
+            }
+        ];
+
+        let currentScenario = 0;
+        let score = 0;
+
+        function showModal() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('modal').style.display = 'block';
+            document.getElementById('modalContent').textContent = scenarios[currentScenario].question;
+        }
+
+        function handleResponse(isSafe) {
+            const correctAnswer = scenarios[currentScenario].correct;
+            let message;
+            
+            if (isSafe === correctAnswer) {
+                score++;
+                message = "✓ 正确！您成功识别了风险";
+            } else {
+                message = "✗ 危险！这是常见诈骗手段";
+            }
+
+            alert(message);
+            
+            currentScenario++;
+            if (currentScenario < scenarios.length) {
+                showModal();
+            } else {
+                showFinalResult();
+            }
+        }
+
+        function showFinalResult() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('modal').style.display = 'none';
+            
+            const result = `测试完成！\n识别正确率：${(score/scenarios.length*100).toFixed(0)}%\n${score >= 3 ? '合格' : '建议重新学习反诈知识'}`;
+            
+            const finalModal = document.createElement('div');
+            finalModal.innerHTML = `
+                <div style="padding:20px;text-align:center">
+                    <h3>测试结果</h3>
+                    <p>${result.replace(/\n/g, '<br>')}</p >
+                    <button onclick="location.reload()" style="
+                        background: #D32F2F;
+                        color: white;
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 5px;
+                        margin-top:15px;
+                        cursor:pointer
+                    ">
+                        重新测试
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(finalModal);
+        }
+
+        // 启动系统
+        document.addEventListener('click', function init() {
+            showModal();
+            document.removeEventListener('click', init);
+        });
+    </script>
+</body>
+</html>
